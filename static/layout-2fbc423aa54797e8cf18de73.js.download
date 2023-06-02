@@ -1,0 +1,7 @@
+var langs = document.querySelectorAll(".language-selection");
+
+langs.forEach((el) => el.addEventListener("click", (event) => {
+    const locale = event.target.getAttribute("data-locale");
+    document.cookie = `ftc_lang=${locale}; max-age=86400; path=/;`;
+    window.location.reload();
+}));

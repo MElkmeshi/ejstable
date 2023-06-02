@@ -1,0 +1,45 @@
+const fileImageFilter = {
+    regex: "image/.*",
+    error: "File must be an image"
+}
+
+const filePdfFilter = {
+    regex: "application/pdf",
+    error: "File must be a PDF"
+}
+
+async function uploadFile(file, typeFilter = null) {
+    if(typeFilter) {
+        if(!file.type.match(typeFilter.regex)) {
+            return { error: typeFilter.error }
+        }
+    }
+    const baseUpload = await fetch(`/uploads`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        // TODO revert the -3
+        body: `filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}` +
+            `&byteCount=${file.size}`,
+        credentials: 'same-origin'
+    })
+    if(!baseUpload.ok) {
+        return { error: await baseUpload.text() }
+    }
+    const uploadInfo = await baseUpload.json()
+
+    const response = await fetch(uploadInfo.target, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': file.type,
+        },
+        body: file,
+        credentials: 'same-origin'
+    })
+    if(!response.ok) {
+        return { error: await response.text() }
+    }
+
+    return uploadInfo.uploadId
+}

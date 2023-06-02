@@ -1,0 +1,1 @@
+import{c as e,d as r,e as o}from"./chunk-SRF4AUNR.js";import{m as n}from"./chunk-DNOI7M3U.js";n();window.FTC_ENV.sentryDsn&&(r({dsn:window.FTC_ENV.sentryDsn,release:window.FTC_ENV.appVersion,ignoreErrors:["[object Object]"]}),e("server_name",window.FTC_ENV.serverId),e("boot_id",window.FTC_ENV.bootId));window.Sentry=o;

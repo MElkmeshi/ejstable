@@ -1,0 +1,114 @@
+/* Copyright (c) 2018 FIRST, Thomas Barnette, George Marchant, and Trey Woodlief. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted (subject to the limitations in the disclaimer below) provided that
+ * the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice, this list
+ * of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice, this
+ * list of conditions and the following disclaimer in the documentation and/or
+ * other materials provided with the distribution.
+ *
+ * Neither the name of FIRST nor the names of its contributors may be used to endorse or
+ * promote products derived from this software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+ * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+//old versions of safari don't have endsWith
+String.prototype.endsWith = function(suffix) {
+    return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+
+// taken from https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
+function storageAvailableType(type) {
+    var storage;
+    try {
+        storage = window[type];
+        var x = '__storage_test__';
+        storage.setItem(x, x);
+        storage.removeItem(x);
+        return true;
+    }
+    catch(e) {
+        return e instanceof DOMException && (
+            // everything except Firefox
+            e.code === 22 ||
+            // Firefox
+            e.code === 1014 ||
+            // test name field too, because code might not be present
+            // everything except Firefox
+            e.name === 'QuotaExceededError' ||
+            // Firefox
+            e.name === 'NS_ERROR_DOM_QUOTA_REACHED') &&
+            // acknowledge QuotaExceededError only if there's something already stored
+            (storage && storage.length !== 0);
+    }
+}
+function storageAvailable() {
+	return storageAvailableType('localStorage');
+}
+function getStorage(key, def) {
+	if (storageAvailable()) {
+		var val = window.localStorage.getItem(key);
+		return (typeof val === 'undefined' || val == null) ? def : val;
+	}
+	return def;
+}
+const VIBRATION = 'VIBRATION';
+function setStorage(key, val) {
+	if (storageAvailable()) {
+		window.localStorage.setItem(key, val);	
+	}
+}
+// https://www.sitepoint.com/use-html5-vibration-api/	
+navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate;
+function vibrate() {
+	try {
+		if (navigator.vibrate) {
+			navigator.vibrate(getStorage(VIBRATION, '0') * 50);
+		}
+	} catch (err) {
+		console.err("Error on vibration");
+	}
+}
+// https://stackoverflow.com/questions/1586341/how-can-i-scroll-to-a-specific-location-on-the-page-using-jquery
+$.fn.scrollView = function () {
+	return this.each(function () {
+		$('html, body').animate({
+			scrollTop: $(this).offset().top
+		}, 1);
+	});
+}
+
+$(document).ready(function() {
+	// add the show hide to all password fields
+	$('input[type="password"]').each(function (index) {
+		let toggleVisible = $('<input class="form-check-input" type="checkbox" style="outline:0">');
+		toggleVisible.uniqueId();
+		let toggleLabel = $("<label class='form-check-label' for='" + toggleVisible.attr('id') +  "'>Show Password</label>");
+		let checkDiv = $("<div class='form-check'>");
+		let inputElement = $(this);
+		toggleVisible.appendTo(checkDiv);
+		toggleLabel.appendTo(checkDiv);
+		checkDiv.insertAfter(inputElement);
+		toggleVisible.change(function () {
+			if (inputElement.attr('type') === 'password') {
+				inputElement.attr('type', 'text');
+			} else {
+				inputElement.attr('type', 'password');
+			}
+		});
+	})
+});
